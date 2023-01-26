@@ -1,0 +1,30 @@
+<#import "../layout/bulibot.ftl.html" as layout>
+<#assign scriptsblock>
+	<script type="text/javascript" src="/assets/javascript/releasenotes-app.js"></script>
+</#assign><@layout.bootstrap title="Bulibot Release Notes" angularApp="bulibot-releasenotes" menu="private" menuitem="releasenotes" scripts=scriptsblock>
+<div ng-controller="ReleaseNotesController as rc"  class="panel panel-default">
+	<div class="panel-heading" role="tab">
+		<h4 class="panel-title">Release Notes</h4>
+	</div>
+	<div class="panel-body">
+		<div class="table-responsive"> 
+			<span ng-repeat="notes in rc.releaseNotes">
+				<h4>Version {{notes.version}} <small>{{notes.released}}</small></h4>
+				<span ng-show="notes.features != null">
+					<h5>Features</h5>
+					<ul>
+						<li ng-repeat="feature in notes.features">{{feature}}</li>
+					</ul>
+				</span>
+				<span ng-show="notes.bugfixes != null">
+					<h5>Bugfixes</h5>
+					<ul>
+						<li ng-repeat="bugfix in notes.bugfixes">{{bugfix}}</li>
+					</ul>
+				</span>
+				<hr ng-show="!$last">
+			</span>
+		</div>
+	</div>
+</div>
+</@layout.bootstrap>

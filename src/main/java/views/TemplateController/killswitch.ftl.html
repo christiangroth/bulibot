@@ -1,0 +1,19 @@
+<#import "../layout/bulibot.ftl.html" as layout>
+<#assign scriptsblock>
+	<script type="text/javascript" src="/assets/javascript/killswitch-app.js"></script>
+</#assign><@layout.bootstrap title="Killswitch" angularApp="bulibot-killswitch" menu="private" menuitem="killswitch" scripts=scriptsblock>
+<div ng-controller="KillswitchController as kc" class="panel panel-default">
+	<div class="panel-heading">
+		<h4 class="panel-title">
+			Killswitch
+		</h4>
+	</div>
+	<div class="panel">
+		<div class="panel-body">
+			<button type="button" class="btn btn-danger" ng-click="kc.trigger()">
+				Reboot
+			</button>
+		</div>
+	</div>
+</div>
+</@layout.bootstrap>

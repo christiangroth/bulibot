@@ -1,0 +1,334 @@
+<#import "../layout/bulibot.ftl.html" as layout>
+<#assign headerblock>
+	<link rel="stylesheet" href="/assets/stylesheets/codemirror-4.3.css">
+	<style>
+		.CodeMirror {
+			border-top: 1px solid #bbb;
+			border-bottom: 1px solid #bbb;
+			height: 550px;
+		}
+	</style>
+</#assign><#assign scriptsblock>
+	<script type="text/javascript" src="/assets/webjars/highstock/4.2.5/highstock-all.js"></script>
+	<script type="text/javascript" src="/assets/javascript/codemirror-4.3.js"></script>
+	<script type="text/javascript" src="/assets/javascript/codemirror/addon/edit/matchbrackets.js"></script>
+	<script type="text/javascript" src="/assets/javascript/codemirror/mode/groovy/groovy.js"></script>
+	<script>
+		var bublibotEditor = CodeMirror.fromTextArea(document.getElementById("source"), {
+			lineNumbers : true,
+			matchBrackets : true,
+			mode : "text/x-groovy"
+		});
+	</script>
+	<script type="text/javascript" src="/assets/javascript/saveShortcut.js"></script>
+	<script type="text/javascript">
+		saveShortcut('#saveButton');
+	</script>
+	<script type="text/javascript" src="/assets/javascript/editor-app.js"></script>
+</#assign><@layout.bootstrap title="Bulibot Editor" angularApp="bulibot-editor" menu="private" menuitem="editor" header=headerblock scripts=scriptsblock>
+<div ng-controller="EditorController as ec" class="panel panel-default">
+	<div ng-show="!ec.testing" class="panel-heading">
+		<div class="dropdown">
+			<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+				Version: {{ec.bulibot.name}}
+				<span class="caret"></span>
+			</button>
+			<ul class="dropdown-menu">
+				<li ng-repeat="bulibot in ec.bulibots | orderBy:['name']" ng-class="{disabled: bulibot.name == ec.bulibot.name}">
+					<a href="" ng-click="bulibot.name == ec.bulibot.name ? null : ec.selectBulibot(bulibot.name)"><span ng-show="bulibot.live" class="glyphicon glyphicon-ok pull-right" style="margin: 2px;"></span>{{bulibot.name}}</a>
+				</li>
+			</ul>
+			<span ng-show="ec.bulibot != null && !ec.duplicating && !ec.renaming && !ec.deleting" title="Hilfe" class="glyphicon glyphicon-question-sign pull-right close" style="margin: 6px;" data-toggle="modal" data-target="#editorHelpModal"></span>
+			
+			<a href="/assets/apidocs/index.html" target="_apidocs"><span ng-show="ec.bulibot != null && !ec.duplicating && !ec.renaming && !ec.deleting" title="API Docs" class="glyphicon glyphicon-book pull-right close" style="margin: 6px;"></span></a>
+			
+			<span ng-show="ec.bulibot != null && !ec.bulibot.live && !ec.duplicating && !ec.renaming && !ec.deleting" title="Löschen" class="glyphicon glyphicon-ban-circle pull-right close" style="margin: 6px;" ng-click="ec.startDelete()"></span>
+			<span ng-show="ec.bulibot != null && ec.deleting" class="glyphicon glyphicon-remove pull-right close" style="margin: 6px;" ng-click="ec.abortDelete()"></span>
+			<span ng-show="ec.bulibot != null && ec.deleting" class="glyphicon glyphicon-ok pull-right close" style="margin: 6px;" ng-click="ec.saveDelete()"></span>
+			<span ng-show="ec.bulibot != null && ec.deleting" class="pull-right" style="margin: 6px;">Soll diese Version wirklich gelöscht werden?</span> 
+			
+			<span ng-show="ec.bulibot != null && !ec.duplicating && !ec.renaming && !ec.deleting" title="Kopieren" class="glyphicon glyphicon-duplicate pull-right close" style="margin: 6px;" ng-click="ec.startDuplicate()"></span>
+			<span ng-show="ec.bulibot != null && ec.duplicating" class="glyphicon glyphicon-remove pull-right close" style="margin: 6px;" ng-click="ec.abortDuplicate()"></span>
+			<span ng-show="ec.bulibot != null && ec.duplicating" class="glyphicon glyphicon-ok pull-right close" style="margin: 6px;" ng-click="ec.saveDuplicate()"></span>
+			<input ng-show="ec.bulibot != null && ec.duplicating" ng-model="ec.nameData.name" type="text" class="form-control pull-right" style="max-width: 220px;" />
+
+			<span ng-show="ec.bulibot != null && !ec.renaming && !ec.duplicating && !ec.deleting" title="Umbenennen" class="glyphicon glyphicon-pencil pull-right close" style="margin: 6px;" ng-click="ec.startRename()"></span>
+			<span ng-show="ec.bulibot != null && ec.renaming" class="glyphicon glyphicon-remove pull-right close" style="margin: 6px;" ng-click="ec.abortRename()"></span>
+			<span ng-show="ec.bulibot != null && ec.renaming" class="glyphicon glyphicon-ok pull-right close" style="margin: 6px;" ng-click="ec.saveRename()"></span>
+			<input ng-show="ec.bulibot != null && ec.renaming" ng-model="ec.nameData.name" type="text" class="form-control pull-right" style="max-width: 220px;" />
+		</div>
+	</div>
+	<div ng-show="ec.testing && ec.testStrategy != null" class="panel-heading">
+		<h4 class="panel-title">
+			Testergebnis: {{ec.messages ['strategy.' + ec.testStrategy]}}
+			<span ng-show="ec.testResult != null" title="Zurück" class="glyphicon glyphicon-chevron-left pull-right close" style="margin: -2px;" ng-click="ec.endTesting()"></span>
+			<span ng-hide="ec.testResult != null && ec.showTestResultCharts" title="Verlauf" class="glyphicon glyphicon-stats pull-right close" style="margin: -2px; margin-right: 8px;" ng-click="ec.toggleTestResultCharts()"></span>
+			<span ng-show="ec.testResult != null && ec.showTestResultCharts" title="Daten" class="glyphicon glyphicon-list-alt pull-right close" style="margin: -2px; margin-right: 8px;" ng-click="ec.toggleTestResultCharts()"></span>
+		</h4>
+	</div>
+	<div class="panel-body">
+		<div style="width: 100%; margin-bottom: 10px;">
+			<span ng-show="!ec.testing">
+				Automatisch speichern: <input type="checkbox" ng-model="ec.bublibotEditorAutoSave" />
+				<span ng-show="ec.bublibotEditorAutoSaveTimerTicks != 0">
+					in {{ec.bublibotEditorAutoSaveTimerTicks}}s
+				</span>
+				<span ng-hide="ec.error != null || ec.message != null" class="pull-right">Ausführung jeweils {{ec.bulibotConfig.executionsMatchThreshold / 60 / 60}}h vor Beginn des Spieltags.</span>
+			</span>
+			<p ng-show="ec.error != null" class="errorMessage pull-right">{{ec.error}}</p>
+			<p ng-show="ec.message != null" class="successMessage pull-right">{{ec.message}}</p>
+		</div>
+		<textarea ng-show="!ec.testing" ng-model="ec.bulibot.source" id="source"></textarea>
+		<div ng-show="ec.testing && ec.testResult != null && !ec.showTestResultCharts" class="table-responsive">
+			<table class="table table-striped table-condensed" style="margin-bottom: 0px;">
+				<thead>
+					<tr>
+						<th colspan="1" style="text-align: center;">Spieltag</th>
+						<th colspan="9" style="text-align: center;">Spiele</th>
+						<th style="text-align: center;">
+							<span class="glyphicon glyphicon-stats" title="Verteilung"></span>
+						</th>
+						<th style="text-align: center;">
+							<span class="glyphicon glyphicon-remove" title="Fehler"></span>
+						</th>
+						<th style="text-align: center;">
+							<span class="glyphicon glyphicon-ok" title="Punkte"></span>
+						</th>
+					</tr>
+					<tr ng-show="ec.testResult.matchdayResults.length > 1">
+						<th style="text-align: center;">
+							<b>Gesamt</b>
+						</th>
+						<th colspan="9">
+						</th>
+						<th style="text-align: center;">
+							<span><b>{{ec.testResult.resultsWithExactHit}}/{{ec.testResult.resultsWithRelativeHit}}/{{ec.testResult.resultsWithWinnerHit}}</b></span>
+						</th>
+						<th style="text-align: center;">
+							<span><b>{{ec.testResult.resultsWithErrorPercentage}}%</b></span>
+						</th>
+						<th style="text-align: center;">
+							<span><b>{{ec.testResult.points}}</b></span>
+						</th>
+					</tr>
+				</thead>
+				<tbody>							
+					<tr ng-repeat="matchdayResult in ec.testResult.matchdayResults">
+						<td style="text-align: center;">
+							<b>{{matchdayResult.matchday}}</b>
+						</td>
+						<td ng-repeat="match in matchdayResult.matchResults" style="text-align: center;">
+							<img title="{{match.teamOneDisplayName}}" ng-src="/assets/team/{{ec.teams[match.teamOneId].localFileName}}" height="16" width="16">
+							<span>{{match.goalsTeamOneFullTime}}:{{match.goalsTeamTwoFullTime}}</span>
+							<img title="{{match.teamTwoDisplayName}}" ng-src="/assets/team/{{ec.teams[match.teamTwoId].localFileName}}" height="16" width="16">
+							<br>
+							
+							<span>({{match.goalsTeamOneHalfTime}}:{{match.goalsTeamTwoHalfTime}})</span>
+							<br>
+							
+							<span ng-show="match.error"><b>-:-</b></span>
+							<span ng-show="!match.error"><b>{{match.bulibotExecutionGoalsTeamOne}}:{{match.bulibotExecutionGoalsTeamTwo}}</b></span>
+							<br>
+							
+							<button ng-show="match.error" class="btn btn-danger btn-xs" style="width: 100%;" ng-click="ec.selectBulibotExecution(match)" data-toggle="modal" data-target="#bulibotExecutionModal">Fehler</button>
+							<button ng-show="!match.error" class="btn btn-xs" ng-class="match.noHit ? 'btn-default' : 'btn-success'" style="width: 100%;" ng-click="ec.selectBulibotExecution(match)" data-toggle="modal" data-target="#bulibotExecutionModal"><b>{{match.points}}</b></button>
+						</td>
+						<td style="text-align: center;">
+							<br>
+							<br>
+							<br>
+							<span><b>{{matchdayResult.resultsWithExactHit}}/{{matchdayResult.resultsWithRelativeHit}}/{{matchdayResult.resultsWithWinnerHit}}</b></span>
+						</td>
+						<td style="text-align: center;">
+							<br>
+							<br>
+							<br>
+							<span><b>{{matchdayResult.resultsWithErrorPercentage}}%</b></span>
+						</td>
+						<td style="text-align: center;">
+							<br>
+							<br>
+							<br>
+							<span><b>{{matchdayResult.points}}</b></span>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div ng-show="ec.testing && ec.testResult != null && ec.showTestResultCharts">
+			<div class="row" style="height:100%; width:100%;">
+				<div class="col-lg-12">
+					<div id="testResultChart"></div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-12">
+					<hr>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-12">
+					<div id="testResultChartPerMatchday"></div>
+				</div>
+			</div>
+		</div>
+		<div ng-show="!ec.testing" style="width: 100%; margin-top: 10px;">
+			<div class="dropdown dropup">
+				<button data-toggle="dropdown" type="button" class="btn btn-success dropdown-toggle">
+					Testen
+					<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu">
+					<li ng-repeat="strategy in ec.strategies"><a ng-click="ec.saveAndTest(strategy)" href="">{{ec.messages["strategy." + strategy]}}</a></li>
+				</ul>
+				<button ng-show="!ec.bulibot.live" class="btn btn-success pull-right" style="margin-left: 6px;" ng-click="ec.bulibot.live ? null : ec.setLive()">Live nutzen</button>
+				<button id="saveButton" class="btn btn-primary pull-right" ng-click="ec.save()">Speichern</button>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="editorHelpModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">Hilfe</h4>
+				</div>
+				<div class="modal-body">
+					<p>
+						In diesem Editor schreibst du deinen Bulibot als Groovy-Skript. Du kannst mehrere Versionen verwalten und es gibt immer genau eine Live-Version.
+						Diese wird mit dem unten aufgeführten Kontext pro anstehendem Spiel einmal aufgerufen um das Tippergebnis zu berechnen.
+						Ebenso kann jede beliebige Version gegen zur Verfügung stehende Testdaten ausgeführt werden. Die Testdaten bestehen immer aus bereits komplett abgeschlossenen Spieltagen. 
+					</p>
+					<h3>Idee</h3>
+					<p>
+						Die Idee besteht darin, alle Ergebnisse aufgrund von statistischen Daten zu berechnen. Hierzu dienen die Klassen Statistics und StatisticsResult.
+						Mit Hilfe von Statistics können über einen StatisticsBuilder neue StatisticResult Objekte erzeugt werden, der StatisticsBuilder bietet hierfür eine Menge an Filter-Methoden.
+						Ein StatisticsResult basiert immer auf Grundlage einer Liste von Spielen, diese werden im StatisticsBuilder gefiltert.
+						Das StatisticsResult enthält daher einige allgemeine Daten, sowie eine Tabelle und Torschützen Daten auf Grundlage der gefilterten Spiele.
+						Leider sind die OpenligaDB-Daten zu den Torschützen aktuell noch nicht zuverlässig gepflegt.
+					</p>
+					<h3>Kontext</h3>
+					<p>Die folgenden Variablen sind bei jedem Aufruf im Kontext des Groovy-Skriptes verfügbar:</p>
+					<table class="table table-striped table-condensed" >
+						<thead>
+							<tr>
+								<th>Variable</th>
+								<th>Typ</th>
+								<th>Beschreibung</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>match</td>
+								<td>MatchMetadata</td>
+								<td>Metadaten des zu tippenden Spiels.</td>
+							</tr>
+							<tr>
+								<td>statistics</td>
+								<td>Statistics</td>
+								<td>Allgemeine Statistiken.</td>
+							</tr>
+							<tr>
+								<td>seasonData</td>
+								<td>StatisticsResult</td>
+								<td>Vorberechnete Statistik Ergebnisse für die aktuell laufende Saison.</td>
+							</tr>
+							<tr>
+								<td>lastSeasonData</td>
+								<td>StatisticsResult</td>
+								<td>Vorberechnete Statistik Ergebnisse für die vergangene Saison.</td>
+							</tr>
+							<tr>
+								<td>overallData</td>
+								<td>StatisticsResult</td>
+								<td>Vorberechnete Statistik Ergebnisse für alle im System verfügbaren Daten.</td>
+							</tr>
+						</tbody>
+					</table>
+					<p>
+						Für den Fall einer Ausführung mit Testdaten stehen im Ergebnis einige Analyse-Möglichkeiten zur Verfügung.
+						Zum einen werden Ausgaben auf Stdout (mittels println) als Debug-Log zur Verfügung gestellt, zum anderen können die im Skript definierten Variablen und ihre Werten eingesehen werden.
+						Aufgrund der Datenmengen werden die oben aufgelisteten initialen Kontextvariablen jedoch nicht mit aufgeführt.
+					</p>
+					<h3>Rückgabe</h3>
+					<p>Die Rückgabe des berechnetes Tipp-Ergebnisses erfolgt dadurch, dass im Groovy-Skript zwei Variablen mit den Toren des Heim- bzw. Gast-Teams gesetzt werden. Diese werden nach der Ausführung entsprechend ausgewertet.</p>
+					<table class="table table-striped table-condensed" >
+						<thead>
+							<tr>
+								<th>Variable</th>
+								<th>Beschreibung</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>goalsTeamOne</td>
+								<td>Tore des Heim-Teams.</td>
+							</tr>
+							<tr>
+								<td>goalsTeamTwo</td>
+								<td>Tore des Gast-Teams.</td>
+							</tr>
+						</tbody>
+					</table>
+					<p>Fehlt eine dieser Variablen, besitzt keinen Wert oder kommt es zu einem Laufzeitfehler, so wird die Berechnung als fehlgeschlagen angesehen.</p>
+					<h3>Java API</h3>
+					<p>Die generierte Dokumentation der für das Skript relevanten Java-Klassen findet sich <a href="/assets/apidocs/index.html" target="_apidocs">hier</a>.</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Schließen</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="bulibotExecutionModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">Details</h4>
+				</div>
+				<div class="modal-body">
+					<span ng-show="ec.testResultBulibotExecution.bulibotExecutionStdout != null">
+						<h4>Ausgabe</h4>
+						<p><pre>{{ec.testResultBulibotExecution.bulibotExecutionStdout}}</pre></p>
+					</span>
+					<h4 ng-show="ec.testResultBulibotExecution.bulibotExecutionState != null">Zustand</h4>
+					<table ng-show="ec.testResultBulibotExecution.bulibotExecutionState != null" class="table table-striped table-condensed" >
+						<thead>
+							<tr>
+								<th>Variable</th>
+								<th>Wert</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="(key, value) in ec.testResultBulibotExecution.bulibotExecutionState">
+								<td>{{key}}</td>
+								<td>{{value || "null"}}</td>
+							</tr>
+						</tbody>
+					</table>
+					<span ng-show="ec.testResultBulibotExecution.bulibotExecutionGoalsTeamOne == null || ec.testResultBulibotExecution.bulibotExecutionGoalsTeamTwo == null">
+						<b>Fehlendes Ergebnis</b><br>
+						Heim: {{ec.testResultBulibotExecution.bulibotExecutionGoalsTeamOne;"n/a"}}<br>
+						Gast: {{ec.testResultBulibotExecution.bulibotExecutionGoalsTeamTwo;"n/a"}}<br>
+						<br>
+					</span>
+					<span ng-show="ec.testResultBulibotExecution.bulibotExecutionErrorCauseType != null || ec.testResultBulibotExecution.bulibotExecutionErrorCauseMessage != null">
+						<b>Laufzeitfehler</b><br>
+						<span ng-show="ec.testResultBulibotExecution.bulibotExecutionErrorCauseType != null">{{ec.testResultBulibotExecution.bulibotExecutionErrorCauseType}}<br></span>
+						<span ng-show="ec.testResultBulibotExecution.bulibotExecutionErrorCauseMessage != null">{{ec.testResultBulibotExecution.bulibotExecutionErrorCauseMessage}}</span>
+						<br>
+					</span>
+					<span ng-show="ec.testResultBulibotExecution.bulibotExecutionDuration != null">
+						<h4>Laufzeit</h4>
+						<p>{{ec.testResultBulibotExecution.bulibotExecutionDuration}}ms / max. {{ec.bulibotConfig.maxRuntime}}ms</p>
+					</span>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Schließen</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</@layout.bootstrap>

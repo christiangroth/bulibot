@@ -1,0 +1,90 @@
+<#import "../layout/bulibot.ftl.html" as layout>
+<#assign scriptsblock>
+	<script type="text/javascript" src="/assets/javascript/authentication-app.js"></script>
+</#assign><@layout.bootstrap title="Bulibot" angularApp="bulibot-authentication" menu="public" menuitem="login" scripts=scriptsblock>
+<div ng-controller="AuthenticationController as ac">
+	<#if flash.verificationFailed??><span ng-init="ac.verification(false)"></span></#if>
+	<#if flash.verificationSuccess??><span ng-init="ac.verification(true)"></span></#if>
+	<div class="row">
+		<div class="col-md-12">
+			<form class="form-signin component-box" role="form" name="loginForm">
+				<p ng-show="ac.verificationMessage != null" class="successMessage">{{ac.verificationMessage}}</p>
+				<p ng-show="ac.verificationError != null" class="errorMessage">{{ac.verificationError}}</p>
+				<p ng-show="ac.loginError != null" class="errorMessage">{{ac.loginError}}</p>
+				<input ng-model="ac.loginData.email" name="email" type="email" class="form-control start-control" placeholder="Email" required="required" autofocus="autofocus">
+				<input ng-model="ac.loginData.password" type="password" class="form-control end-control" placeholder="Passwort" required="required">
+				<button ng-disabled="loginForm.$invalid" class="btn btn-lg btn-primary btn-block" type="submit" ng-click="ac.login()">Login</button>
+				<a class="secondary-function" href="" data-toggle="modal" data-target="#passwordResetModal">Passwort vergessen?</a>
+				<a ng-show="ac.config.registrationEnabled" class="secondary-function" href="" data-toggle="modal" data-target="#registrationModal">Mitmachen?</a>
+				<a ng-show="ac.config.registrationEnabled" class="secondary-function" href="" data-toggle="modal" data-target="#resendVerificationModal">E-Mail erneut verizifieren?</a>
+			</form>
+		</div>
+	</div>
+	<div class="modal fade" id="passwordResetModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">Passwort vergessen?</h4>
+				</div>
+				<div class="modal-body">
+					<form class="form-signin component-box" role="form" name="resetPasswordForm">
+						<p ng-show="ac.resetPasswordMessage != null" class="successMessage">{{ac.resetPasswordMessage}}</p>
+						<p ng-show="ac.resetPasswordError != null" class="errorMessage">{{ac.resetPasswordError}}</p>
+						<input ng-model="ac.resetPasswordData.email" type="email" class="form-control start-control end-control" placeholder="Email" required="required" autofocus="autofocus">
+						<button ng-disabled="resetPasswordForm.$invalid" class="btn btn-lg btn-primary btn-block" type="submit" ng-click="ac.resetPassword()">Zurücksetzen</button>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="registrationModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">Registrierung</h4>
+				</div>
+				<div class="modal-body">
+					<form class="form-signin component-box" role="form" name="registrationForm">
+						<p ng-show="ac.registrationMessage != null" class="successMessage">{{ac.registrationMessage}}</p>
+						<p ng-show="ac.registrationError != null" class="errorMessage">{{ac.registrationError}}</p>
+						<input ng-model="ac.registrationData.name" type="text" class="form-control start-control" placeholder="Name" required="required" autofocus="autofocus">
+						<input ng-model="ac.registrationData.email" type="email" class="form-control end-control" placeholder="Email" required="required">
+						<input ng-model="ac.registrationData.password" type="password" class="form-control start-control" placeholder="Passwort" required="required">
+						<input ng-model="ac.registrationData.passwordAgain" type="password" class="form-control end-control" placeholder="Passwort Wiederholung" required="required">
+						<button ng-disabled="registrationForm.$invalid" class="btn btn-lg btn-primary btn-block" type="submit" ng-click="ac.registration()">Registrieren</button>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="resendVerificationModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">E-Mail verifizieren</h4>
+				</div>
+				<div class="modal-body">
+					<form class="form-signin component-box" role="form" name="resendVerificationForm">
+						<p ng-show="ac.resendVerificationMessage != null" class="successMessage">{{ac.resendVerificationMessage}}</p>
+						<p ng-show="ac.resendVerificationError != null" class="errorMessage">{{ac.resendVerificationError}}</p>
+						<input ng-model="ac.resendVerificationData.email" type="email" class="form-control start-control end-control" placeholder="Email" required="required" autofocus="autofocus">
+						<button ng-disabled="resendVerificationForm.$invalid" class="btn btn-lg btn-primary btn-block" type="submit" ng-click="ac.resendVerification()">Senden</button>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</@layout.bootstrap>

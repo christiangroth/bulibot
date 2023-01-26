@@ -1,0 +1,17 @@
+.metadata/*
+.settings/*
+.classpath
+.project
+.gradle/*
+*.iml
+build/*
+target/*
+/target/
+jsonStorage/*
+mediaStorage/*
+dependency-reduced-pom.xml
+bulibot-alpha/*
+bulibot-beta/*
+data.org/*
+data.test/*
+/.idea/

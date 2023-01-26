@@ -1,0 +1,91 @@
+<#macro bootstrap title="Bulibot" angularApp="" menu="public" menuitem="no-active" header="" scripts="">
+<!DOCTYPE html>
+<html lang="de">
+	<head>
+	    <title>${title}</title>
+		<link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon">
+		<link rel="icon" href="/assets/favicon.ico" type="image/x-icon">
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<script type="text/javascript" src="/assets/webjars/jquery/2.1.3/jquery.js"></script>
+		<script type="text/javascript" src="/assets/webjars/bootstrap/3.3.7-1/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="/assets/webjars/angularjs/1.4.7/angular.min.js"></script>
+		<link href="/assets/webjars/bootstrap/3.3.7-1/css/bootstrap.min.css" rel="stylesheet">
+		<link href="/assets/stylesheets/bulibot.css" rel="stylesheet">
+		<#noescape>${header}</#noescape>
+	</head>
+	<body<#if angularApp != ""> ng-app="${angularApp}"</#if>>
+		<div class="container">
+			<nav class="navbar navbar-default" role="navigation">
+				<div class="container-fluid">
+			  
+				    <!-- Brand and toggle get grouped for better mobile display -->
+				    <div class="navbar-header">
+						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bulibotNavbar">
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>                        
+						</button>
+						<img class="navbar-brand" src="/assets/images/robot.png" />
+						<a class="navbar-brand" href="/">Bulibot <small style="font-weight: lighter;">v${buildVersion}</small></a>
+				    </div>
+	
+				    <div id="bulibotNavbar" class="collapse navbar-collapse">
+				    <#if menu = "public">
+						<ul class="nav navbar-nav">
+							<li<#if menuitem = "login"> class="active"</#if>><a href="/">Login</a></li>
+						</ul>
+						<ul class="nav navbar-nav navbar-right">
+						</ul>
+				    <#elseif menu = "private">
+						<ul class="nav navbar-nav">
+							<li<#if menuitem = "rankings"> class="active"</#if>><a href="/rankings">Spielstand</a></li>
+							<li<#if menuitem = "editor"> class="active"</#if>><a href="/editor">Editor</a></li>
+							<li<#if menuitem = "matches"> class="active"</#if>><a href="/matches">Daten</a></li>
+						</ul>
+						<ul class="nav navbar-nav navbar-right">
+							<li<#if menuitem = "profile"> class="active"</#if>><a href="/profile">Profil</a></li>
+							<#if activeUser?? && activeUser.admin>
+							<li class="dropdown <#if menuitem = "killswitch" || menuitem = "pendingbulibotexecutions" || menuitem = "users" || menuitem="smartcrons" || menuitem="persistence" || menuitem="config" || menuitem="api" || menuitem="build">active</#if>">
+								<a href="" class="dropdown-toggle" data-toggle="dropdown" role="button">Admin <span class="caret"></span></a>
+								<ul class="dropdown-menu">
+									<li<#if menuitem = "pendingbulibotexecutions"> class="active"</#if>><a href="/pendingBulibotExecutions">Offene Bulibot Tipps</a></li>
+									<li<#if menuitem = "users"> class="active"</#if>><a href="/users">Benutzer</a></li>
+									<li<#if menuitem = "smartcrons"> class="active"</#if>><a href="/smartcrons">Smartcrons</a></li>
+									<li<#if menuitem = "persistence"> class="active"</#if>><a href="/persistence">Datenhaltung</a></li>
+									<li<#if menuitem = "config"> class="active"</#if>><a href="/config">Konfiguration</a></li>
+									<li<#if menuitem = "api"> class="active"</#if>><a href="/api">API</a></li>
+									<li<#if menuitem = "killswitch"> class="active"</#if>><a href="/killswitch">Killswitch</a></li>
+								</ul>
+							</li>
+							</#if>
+							<li<#if menuitem = "releasenotes"> class="active"</#if>><a href="/releasenotes">Version</a></li>
+							<li><a href="/logout">Logout</a></li>
+						</ul>
+				    </#if>
+				    </div>
+				</div>
+			</nav>
+		</div>
+		
+		<div class="container ng-cloak">
+			<#nested />
+		</div>
+		
+		<div id="loadingPanel" class="ng-cloak" style="display: none;" data-loading>
+			<img id="loadingPanelImage" src="/assets/images/loading.gif">
+		</div>
+		
+		<!-- scripts -->
+		<script type="text/javascript" src="/assets/javascript/bulibot-app.js"></script>
+		<#noescape>${scripts}</#noescape>
+		<script type="text/javascript">
+		  setInterval(function(){
+		      $('.blink').each(function(){
+		        $(this).css('visibility' , $(this).css('visibility') === 'hidden' ? '' : 'hidden')
+		      });
+		    }, 666);
+		</script>
+	</body>
+</html>
+</#macro>

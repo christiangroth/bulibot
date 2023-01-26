@@ -1,0 +1,288 @@
+<#import "../layout/bulibot.ftl.html" as layout>
+<#assign scriptsblock>
+	<script type="text/javascript" src="/assets/javascript/matches-app.js"></script>
+</#assign><@layout.bootstrap title="Bulibot Daten" angularApp="bulibot-matches" menu="private" menuitem="matches" scripts=scriptsblock>
+<div ng-controller="MatchesController as mc" class="panel panel-default">
+	<div class="panel-heading">
+		<h4 class="panel-title">Saison {{mc.season}}/{{mc.season + 1}}, Spieltag <#noescape>#</#noescape>{{mc.matchday}}</h4>
+	</div>
+	<div class="panel">
+		<div class="panel-body">
+			<ol class="breadcrumb">
+				<li ng-repeat="season in mc.seasons" ng-class="{active: mc.season == season}"><a ng-show="mc.season != season" href="" ng-click="mc.season != season ? mc.switchSeason(season) : null">{{season}}</a><span ng-show="mc.season == season">{{season}}</span></li>
+				<li ng-class="{active: mc.season == null}"><a ng-show="mc.season != null" href="" ng-click="mc.season != null ? mc.switchSeason(null) : null">Gesamt</a><span ng-show="mc.season == null">Gesamt</span></li>
+			</ol>
+			<ul class="nav nav-tabs" role="tablist">
+				<li ng-show="mc.matches.length > 0" role="presentation" ng-class="{active: mc.tab == 'matches'}"><a href="#matches" ng-click="mc.setTab('matches')" role="tab" data-toggle="tab">Spiele</a></li>
+				<li ng-show="mc.statistics != null" role="presentation" ng-class="{active: mc.tab == 'ranking'}"><a href="#ranking" ng-click="mc.setTab('ranking')" role="tab" data-toggle="tab">Tabelle</a></li>
+				<li ng-show="mc.statistics != null" role="presentation" ng-class="{active: mc.tab == 'rankingHome'}"><a href="#ranking" ng-click="mc.setTab('rankingHome')" role="tab" data-toggle="tab">Tabelle (Heim)</a></li>
+				<li ng-show="mc.statistics != null" role="presentation" ng-class="{active: mc.tab == 'rankingAway'}"><a href="#ranking" ng-click="mc.setTab('rankingAway')" role="tab" data-toggle="tab">Tabelle (Auswärts)</a></li>
+				<li ng-show="mc.statistics != null" role="presentation" ng-class="{active: mc.tab == 'eloRanking'}"><a href="#eloRanking" ng-click="mc.setTab('eloRanking')" role="tab" data-toggle="tab">Elo Ranking</a></li>
+				<li ng-show="mc.statistics != null" role="presentation" ng-class="{active: mc.tab == 'ggetter'}"><a href="#ggetter" ng-click="mc.setTab('ggetter')" role="tab" data-toggle="tab">Torschützen</a></li>
+				<li ng-show="mc.statistics != null" role="presentation" ng-class="{active: mc.tab == 'details'}"><a href="#details" ng-click="mc.setTab('details')" role="tab" data-toggle="tab">Statistik</a></li>
+			</ul>
+			<div class="tab-content">
+				<div role="tabpanel" class="tab-pane" ng-class="{active: mc.tab == 'matches'}" id="matches">
+					<div class="table-responsive"> 
+						<table class="table table-striped table-condensed" style="margin-bottom: 0px;">
+							<col width="*">
+							<col width="30%">
+							<col width="*">
+							<col width="*">
+							<col width="*">
+							<col width="30%">
+							<col width="*">
+							<tbody>
+								<tr ng-repeat="match in mc.matches | orderBy:['assignedTime.year','assignedTime.monthValue','assignedTime.dayOfMonth','assignedTime.hour','assignedTime.minute','id']" >
+									<td align="center">{{match.assignedTime.dayOfMonth < 10 ? '0' : ''}}{{match.assignedTime.dayOfMonth}}.{{match.assignedTime.monthValue < 10 ? '0' : ''}}{{match.assignedTime.monthValue}}.{{match.assignedTime.year}} {{match.assignedTime.hour}}:{{match.assignedTime.minute < 10 ? '0' : ''}}{{match.assignedTime.minute}} Uhr</td>
+									<td align="center">{{match.teamOneName}}</td>
+									<td align="center"><img title="{{match.teamOneDisplayName}}" ng-src="/assets/team/{{mc.teams[match.teamOneId].localFileName}}" height="16" width="16"></td>
+									<td align="center">
+										<span ng-show="match.status == 'WAITING'">- : -</span>
+										<span ng-show="match.status == 'IN_PROGRESS' || match.status == 'FINISHED'" ng-class="{blink: match.status == 'IN_PROGRESS'}" ng-style="{'font-style': match.status == 'IN_PROGRESS' ? 'italic' : 'normal'}">
+											{{match.goalsTeamOneFullTime}}:{{match.goalsTeamTwoFullTime}}
+											<span ng-show="match.goalsTeamOneHalfTime != null && match.goalsTeamTwoHalfTime != null">&nbsp;({{match.goalsTeamOneHalfTime}}:{{match.goalsTeamTwoHalfTime}})</span>
+										</span>
+									</td>
+									<td align="center"><img title="{{match.teamTwoDisplayName}}" ng-src="/assets/team/{{mc.teams[match.teamTwoId].localFileName}}" height="16" width="16"></td>
+									<td align="center">{{match.teamTwoName}}</td>
+									<td align="center">
+										<img ng-show="match.goals && match.goals.length > 0"  src="/assets/images/icons/soccer.png" width="16" height="16" title="Tore" class="close" ng-click="mc.selectMatch(match)" data-toggle="modal" data-target="#goalsModal" />
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div role="tabpanel" class="tab-pane" ng-class="{active: mc.tab == 'ranking'}" id="ranking">
+					<div class="table-responsive"> 
+						<table class="table table-striped table-condensed" style="margin-bottom: 0px;">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th colspan="2">Team</th>
+									<th>Spiele</th>
+									<th>S</th>
+									<th>U</th>
+									<th>N</th>
+									<th>T</th>
+									<th>GT</th>
+									<th>Diff</th>
+									<th>Pkt</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="rank in mc.statistics.ranking.ranks | orderBy:['position', 'teamName']">
+									<td>{{rank.position}}.</td>
+									<td><img title="{{rank.teamDisplayName}}" ng-src="/assets/team/{{mc.teams[rank.teamId].localFileName}}" height="16" width="16"></td>
+									<td>{{rank.teamName}}</td>
+									<td>{{rank.games}}</td>
+									<td>{{rank.wins}}</td>
+									<td>{{rank.draws}}</td>
+									<td>{{rank.defeats}}</td>
+									<td>{{rank.goalsScored}}</td>
+									<td>{{rank.goalsReceived}}</td>
+									<td>{{rank.goalsDifference}}</td>
+									<td>{{rank.points}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div role="tabpanel" class="tab-pane" ng-class="{active: mc.tab == 'rankingHome'}" id="rankingHome">
+					<div class="table-responsive"> 
+						<table class="table table-striped table-condensed" style="margin-bottom: 0px;">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th colspan="2">Team</th>
+									<th>Spiele</th>
+									<th>S</th>
+									<th>U</th>
+									<th>N</th>
+									<th>T</th>
+									<th>GT</th>
+									<th>Diff</th>
+									<th>Pkt</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="rank in mc.statistics.rankingHome.ranks | orderBy:['position', 'teamName']">
+									<td>{{rank.position}}.</td>
+									<td><img title="{{rank.teamDisplayName}}" ng-src="/assets/team/{{mc.teams[rank.teamId].localFileName}}" height="16" width="16"></td>
+									<td>{{rank.teamName}}</td>
+									<td>{{rank.games}}</td>
+									<td>{{rank.wins}}</td>
+									<td>{{rank.draws}}</td>
+									<td>{{rank.defeats}}</td>
+									<td>{{rank.goalsScored}}</td>
+									<td>{{rank.goalsReceived}}</td>
+									<td>{{rank.goalsDifference}}</td>
+									<td>{{rank.points}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div role="tabpanel" class="tab-pane" ng-class="{active: mc.tab == 'rankingAway'}" id="rankingAway">
+					<div class="table-responsive"> 
+						<table class="table table-striped table-condensed" style="margin-bottom: 0px;">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th colspan="2">Team</th>
+									<th>Spiele</th>
+									<th>S</th>
+									<th>U</th>
+									<th>N</th>
+									<th>T</th>
+									<th>GT</th>
+									<th>Diff</th>
+									<th>Pkt</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="rank in mc.statistics.rankingAway.ranks | orderBy:['position', 'teamName']">
+									<td>{{rank.position}}.</td>
+									<td><img title="{{rank.teamDisplayName}}" ng-src="/assets/team/{{mc.teams[rank.teamId].localFileName}}" height="16" width="16"></td>
+									<td>{{rank.teamName}}</td>
+									<td>{{rank.games}}</td>
+									<td>{{rank.wins}}</td>
+									<td>{{rank.draws}}</td>
+									<td>{{rank.defeats}}</td>
+									<td>{{rank.goalsScored}}</td>
+									<td>{{rank.goalsReceived}}</td>
+									<td>{{rank.goalsDifference}}</td>
+									<td>{{rank.points}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div role="tabpanel" class="tab-pane" ng-class="{active: mc.tab == 'eloRanking'}" id="eloRanking">
+					<div class="table-responsive"> 
+						<table class="table table-striped table-condensed" style="margin-bottom: 0px;">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th colspan="2">Team</th>
+									<th>Spiele</th>
+									<th>Score</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="rank in mc.statistics.eloRanking.ranks | orderBy:['position', 'teamName']">
+									<td>{{rank.position}}.</td>
+									<td><img title="{{rank.teamDisplayName}}" ng-src="/assets/team/{{mc.teams[rank.teamId].localFileName}}" height="16" width="16"></td>
+									<td>{{rank.teamName}}</td>
+									<td>{{rank.games}}</td>
+									<td>{{rank.score}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div role="tabpanel" class="tab-pane" ng-class="{active: mc.tab == 'ggetter'}" id="ggetter">
+					<div class="table-responsive"> 
+						<table class="table table-striped table-condensed" style="margin-bottom: 0px;">
+							<col width="5%">
+							<col width="5%">
+							<col width="70%">
+							<col width="10%">
+							<col width="10%">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th colspan="2">Spieler</th>
+									<th title="Tore (Elfmeter/Nachspielzeit)">Tore</th>
+									<th title="Spiele mit Torerfolg, nicht Einsätzen">Spiele</th>
+								</tr>
+								<tr>
+									<td colspan="5"><div class="alert alert-warning" role="alert" style="margin-bottom: 0px; text-align: center;">
+										Die Torschützen sind in den OpenLigaDB Daten leider nicht immer und vor allem nicht immer konsistent gepflegt.</div>
+									</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="gg in mc.statistics.goalGetters.goalGetter | orderBy:['position', 'name']">
+									<td><#noescape>#</#noescape>{{gg.position}}</td>
+									<td><img title="{{gg.teamDisplayName}}" ng-src="/assets/team/{{mc.teams[gg.teamId].localFileName}}" height="16" width="16"></td>
+									<td>{{gg.name}}</td>
+									<td>{{gg.goals}} ({{gg.penaltyGoals}}/{{gg.overtimeGoals}})</td>
+									<td>{{gg.matches}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div role="tabpanel" class="tab-pane" ng-class="{active: mc.tab == 'details'}" id="details">
+					<div class="table-responsive"> 
+						<table class="table table-striped table-condensed" style="margin-bottom: 0px;">
+							<tr>
+								<td>Spieltage</td>
+								<td>{{mc.statistics.matchdays}}</td>
+							</tr>
+							<tr>
+								<td>Spiele</td>
+								<td>{{mc.statistics.matches}}</td>
+							</tr>
+							<tr>
+								<td>Tore (Heim / Gast / Gesamt)</td>
+								<td>{{mc.statistics.goalsTeamOne}} / {{mc.statistics.goalsTeamTwo}} / {{mc.statistics.goals}}</td>
+							</tr>
+							<tr>
+								<td>Tore pro Spieltag (Heim / Gast / Gesamt)</td>
+								<td>{{mc.statistics.goalsTeamOnePerMatchday | number : 2}} / {{mc.statistics.goalsTeamTwoPerMatchday | number : 2}} / {{mc.statistics.goalsPerMatchday | number : 2}}</td>
+							</tr>
+							<tr>
+								<td>Tore pro Spiel (Heim / Gast / Gesamt)</td>
+								<td>{{mc.statistics.goalsTeamOnePerMatch | number : 2}} / {{mc.statistics.goalsTeamTwoPerMatch | number : 2}} / {{mc.statistics.goalsPerMatch | number : 2}}</td>
+							</tr>
+							<tr>
+								<td>Heimsiege</td>
+								<td>{{mc.statistics.teamOneWinsRatio | number : 2}}% ({{mc.statistics.teamOneWins}})</td>
+							</tr>
+							<tr>
+								<td>Unentschieden</td>
+								<td>{{mc.statistics.drawsRatio | number : 2}}% ({{mc.statistics.draws}})</td>
+							</tr>
+							<tr>
+								<td>Auswärtssiege</td>
+								<td>{{mc.statistics.teamTwoWinsRatio | number : 2}}% ({{mc.statistics.teamTwoWins}})</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+			<ul ng-show="mc.season != null" class="pager" style="margin-top: 4px; margin-bottom: 4px;">
+				<li class="previous" ng-class="{disabled: mc.matchday == 1}"><a href="" ng-click="mc.matchday != 1 ? mc.previousMatchday() : null">&larr; Vorheriger</a></li>
+				<li class="next" ng-class="{disabled: (mc.season == mc.currentSeason && mc.matchday == mc.currentMatchday) || mc.matchday == 34}"><a href="" ng-click="(mc.season == mc.currentSeason && mc.matchday == mc.currentMatchday) || mc.matchday == 34 ? null : mc.nextMatchday()">Nächster &rarr;</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="modal fade" id="goalsModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">Details</h4>
+				</div>
+				<div class="modal-body">
+					<p ng-repeat="goal in mc.selectedMatch.goals | orderBy:['order']">
+						<span ng-show="goal.minute != null && goal.minute > 0">{{goal.minute < 10 ? '0' : ''}}{{goal.minute}}.</span>
+						<img ng-show="goal.penalty" src="/assets/images/icons/the_referee.png" width="16" height="16" class="infoIcon" title="Elfmeter" />
+						<img ng-show="goal.ownGoal" src="/assets/images/icons/thumb_down.png" width="16" height="16" class="infoIcon" title="Eigentor" />
+						<img ng-show="goal.overtime || (goal.minute != null && goal.minute > 90)" src="/assets/images/icons/stop_watch_icon.png" width="16" height="16" class="infoIcon" title="Nachspielzeit" />
+						<img ng-show="!goal.penalty && !goal.ownGoal && !goal.overtime" src="/assets/images/icons/soccer.png" width="16" height="16" class="infoIcon" title="reguläres Tor" />
+						<span>{{goal.goalsTeamOne}}:{{goal.goalsTeamTwo}}</span>
+						<span>{{goal.goalGetterName || "n/a"}} ({{goal.goalGetterTeamName || "n/a"}})</span>
+					</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Schließen</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</@layout.bootstrap>

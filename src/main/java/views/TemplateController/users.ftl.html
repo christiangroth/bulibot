@@ -1,0 +1,109 @@
+<#import "../layout/bulibot.ftl.html" as layout>
+<#assign scriptsblock>
+	<script type="text/javascript" src="/assets/javascript/users-app.js"></script>
+</#assign><@layout.bootstrap title="Bulibot Benutzer" angularApp="bulibot-users" menu="private" menuitem="users" scripts=scriptsblock>
+<div ng-controller="UserController as uc" class="panel panel-default">
+	<div class="panel-heading">
+		<h4 class="panel-title">
+			Benutzer
+			<span title="Hilfe" class="glyphicon glyphicon-plus pull-right close" style="margin: 6px; margin-top: -3px;" data-toggle="modal" data-target="#inviteModal"></span>
+		</h4>
+	</div>
+	<div class="panel">
+		<div class="panel-body">
+			<p ng-show="uc.usersMessage != null" class="successMessage">{{uc.usersMessage}}</p>
+			<p ng-show="uc.usersError != null" class="errorMessage">{{uc.usersError}}</p>
+			<div class="table-responsive"> 
+				<table ng-show="uc.user != null" class="table table-striped table-condensed" style="margin-bottom: 0px;">
+					<thead>
+						<tr>
+							<th colspan="4">Benutzer</th>
+							<th>Seit</th>
+							<th>Bad Auth</th>
+							<th ng-show="!uc.inUserAction" style="text-align: center">Verifiziert</th>
+							<th ng-show="!uc.inUserAction" style="text-align: center">Gesperrt</th>
+							<th ng-show="!uc.inUserAction" style="text-align: center">Admin</th>
+							<th ng-show="uc.inUserAction" colspan="3"></th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="user in uc.users | orderBy:['generated', 'id']" >
+							<td align="center">
+								<span ng-show="user.generated" class="glyphicon glyphicon-hdd"></span>
+								<span ng-show="!user.generated" class="glyphicon glyphicon-user"></span>
+							</td>
+							<td>{{user.id}}</td>
+							<td>{{user.email}}</td>
+							<td>{{user.name}}</td>
+							<td>{{user.since.dayOfMonth < 10 ? '0' : ''}}{{user.since.dayOfMonth}}.{{user.since.monthValue < 10 ? '0' : ''}}{{user.since.monthValue}}.{{user.since.year}}</td>
+							<td>{{user.failedLogins}}</td>
+							
+							<td ng-show="!uc.inUserAction" align="center">
+								{{user.verified ? 'Ja' : 'Nein'}}
+							</td>
+							
+							<td ng-show="!uc.inUserAction && (uc.user.id == user.id || user.generated)" align="center">
+								{{user.locked ? 'Ja' : 'Nein'}}
+							</td>
+							<td ng-show="!uc.inUserAction && uc.user.id != user.id && !user.generated" align="center">
+								<span ng-show="user.locked" class="glyphicon glyphicon-check" style="cursor: pointer;" ng-click="uc.unlock(user)"></span>
+								<span ng-show="!user.locked" class="glyphicon glyphicon-unchecked" style="cursor: pointer;" ng-click="uc.lock(user)"></span>
+							</td>
+							
+							<td ng-show="!uc.inUserAction && (uc.user.id == user.id || user.generated)" align="center">
+								{{user.admin ? 'Ja' : 'Nein'}}
+							</td>
+							<td ng-show="!uc.inUserAction && uc.user.id != user.id && !user.generated" align="center">
+								<span ng-show="user.admin" class="glyphicon glyphicon-check" style="cursor: pointer;" ng-click="uc.noAdmin(user)"></span>
+								<span ng-show="!user.admin" class="glyphicon glyphicon-unchecked" style="cursor: pointer;" ng-click="uc.admin(user)"></span>
+							</td>
+							
+							<td ng-show="uc.inUserAction && uc.selectedUser != null" colspan="3" style="text-align: center;">
+								<span ng-show="uc.selectedUser.id == user.id">{{uc.userActionText}}</span>
+							</td>
+							<td>
+								<div class="dropdown">
+									<button ng-show="!uc.inUserAction && uc.user.id != user.id && !user.generated" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+								  		<span class="glyphicon glyphicon-cog close" style="margin-left: 4px;"></span>
+										<span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu" style="min-width: 0px; max-width: 60px;">
+										<li><a href="" ng-click="uc.beginUserAction(user, 'pwreset', 'Passwort zurücksetzen?')"><span class="glyphicon glyphicon-envelope"></span></a></li>
+										<li><a href="" ng-click="uc.beginUserAction(user, 'delete', 'Benutzer unwiderruflich löschen?')"><span class="glyphicon glyphicon-trash"></span></a></li>
+									</ul>
+								</div>
+							
+								<span ng-show="uc.selectedUser != null && uc.selectedUser.id == user.id" class="glyphicon glyphicon-ok close" ng-click="uc.applyUserAction()"></span>
+								<span ng-show="uc.selectedUser != null && uc.selectedUser.id == user.id" class="glyphicon glyphicon-remove close" ng-click="uc.abortUserAction()" style="margin-right: 6px;"></span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="inviteModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+					<h4 class="modal-title">Einladung</h4>
+				</div>
+				<div class="modal-body">
+					<form class="form-signin component-box" role="form" name="inviteForm">
+						<p ng-show="uc.inviteMessage != null" class="successMessage">{{uc.inviteMessage}}</p>
+						<p ng-show="uc.inviteError != null" class="errorMessage">{{uc.inviteError}}</p>
+						<input ng-model="uc.inviteData.name" type="text" class="form-control start-control" placeholder="Name" required="required" autofocus="autofocus">
+						<input ng-model="uc.inviteData.email" type="email" class="form-control end-control" placeholder="Email" required="required">
+						<button ng-disabled="inviteForm.$invalid" class="btn btn-lg btn-primary btn-block" type="submit" ng-click="uc.invite()">Einladen</button>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</@layout.bootstrap>

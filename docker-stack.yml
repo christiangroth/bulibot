@@ -1,0 +1,23 @@
+version: "3"
+services:
+  bulibot:
+    image: chrgroth/bulibot:${DOCKER_TAG:?please export DOCKER_TAG}
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.bulibot.rule=Host(`xxx`)"
+        - "traefik.http.routers.bulibot.entryPoints=websecure"
+        - "traefik.http.routers.bulibot.tls=true"
+        - "traefik.http.services.bulibot-svc.loadbalancer.server.port=8080"
+    volumes:
+      - "/var/docker/data/bulibot:/data"
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+    networks:
+      - global_router
+networks:
+  global_router:
+    external: true

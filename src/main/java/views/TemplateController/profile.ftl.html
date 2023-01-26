@@ -1,0 +1,124 @@
+<#import "../layout/bulibot.ftl.html" as layout>
+<#assign scriptsblock>
+	<script type="text/javascript" src="/assets/javascript/profile-app.js"></script>
+</#assign><@layout.bootstrap title="Bulibot Profil" angularApp="bulibot-profile" menu="private" menuitem="profile" scripts=scriptsblock>
+<div ng-controller="ProfileController as pc" class="panel panel-default">
+	<div class="panel-heading">
+		<h4 class="panel-title">Profil<span class="glyphicon glyphicon-trash pull-right close" data-toggle="modal" data-target="#deleteProfileModal"></span></h4>
+	</div>
+	<div class="panel" style="padding: 0px 10px 0px 10px;">
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-md-12">
+					<dl class="dl-horizontal editable-list">
+						<dt><img ng-src="https://robohash.org/{{pc.changeBulibotNameData.bulibotName}}{{pc.changeNameData.name}}?size=64x64" style="border: 1px solid #ccc; border-radius: 6px;"></dt>
+						<dd><span class="output">Das Profilbild ergibt sich mit Hilfe von <a href="https://robohash.org/" target="_blank">robohash.org</a> aus deinem Bulibotnamen sowie deinem Benutzernamen: https://robohash.org/{{pc.changeBulibotNameData.bulibotName}}{{pc.changeNameData.name}}</span></dd>
+						<dt><span class="output">E-Mail:</span></dt>
+						<dd><span class="output">{{pc.user.email}}</span></dd>
+						<dt><span class="output">Benutzername:</span></dt>
+						<dd><span class="output">{{pc.user.name}}</span><span class="glyphicon pull-left close" ng-class="pc.changeNameEnabled ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'" style="margin-right: 8px;" ng-click="pc.toggleChangeName()"></span></dd>
+						<dd ng-show="pc.changeNameEnabled">
+							<form role="form" name="changeNameForm">
+								<input ng-model="pc.changeNameData.name" name="name" type="text" class="pull-left" id="name" required="required">
+								<span class="glyphicon glyphicon-remove pull-left close" style="margin-right: 8px;" ng-click="pc.toggleChangeName()"></span>
+								<span class="glyphicon glyphicon-ok pull-left close" style="margin-right: 8px;" ng-click="pc.changeName()"></span>
+							</form>
+						</dd>
+						<dd ng-show="pc.changeNameMessage != null" class="successMessage" style="text-align: left;">{{pc.changeNameMessage}}</dd>
+						<dd ng-show="pc.changeNameError != null" class="errorMessage" style="text-align: left;">{{pc.changeNameError}}</dd>
+						<dt><span class="output">Passwort:</span></dt>
+						<dd><span class="output">*****</span><span class="glyphicon pull-left close" ng-class="pc.changePasswordEnabled ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'" style="margin-right: 8px;" ng-click="pc.toggleChangePassword()"></span></dd>
+						<dd ng-show="pc.changePasswordEnabled">
+							<form role="form" name="changePasswordForm">
+								<input ng-model="pc.changePasswordData.password" name="password" type="password" id="password" placeholder="Aktuelles Passwort" required="required"><br>
+								<input ng-model="pc.changePasswordData.newPassword" name="newPassword" type="password" id="newPassword" placeholder="Neues Passwort" required="required"><br>
+								<input ng-model="pc.changePasswordData.newPasswordAgain" name="newPasswordAgain" type="password" class="pull-left" id="newPasswordAgain" placeholder="Neues Passwort (Wiederholung)" required="required">
+								<span class="glyphicon glyphicon-remove pull-left close" style="margin-right: 8px;" ng-click="pc.toggleChangePassword()"></span>
+								<span class="glyphicon glyphicon-ok pull-left close" style="margin-right: 8px;" ng-click="pc.changePassword()"></span>
+							</form>
+						</dd>
+						<dd ng-show="pc.changePasswordMessage != null" class="successMessage" style="text-align: left;">{{pc.changePasswordMessage}}</dd>
+						<dd ng-show="pc.changePasswordError != null" class="errorMessage" style="text-align: left;">{{pc.changePasswordError}}</dd>
+						<dt><span class="output">Bulibotname</span></dt>
+						<dd><span class="output">{{pc.user.bulibotName}}</span><span class="glyphicon pull-left close" ng-class="pc.changeBulibotNameEnabled ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'" style="margin-right: 8px;" ng-click="pc.toggleChangeBulibotName()"></span></dd>
+						<dd ng-show="pc.changeBulibotNameEnabled">
+							<form role="form" name="changeNameForm">
+								<input ng-model="pc.changeBulibotNameData.bulibotName" name="bulibotName" type="text" class="pull-left" id="bulibotName" required="required">
+								<span class="glyphicon glyphicon-remove pull-left close" style="margin-right: 8px;" ng-click="pc.toggleChangeBulibotName()"></span>
+								<span class="glyphicon glyphicon-ok pull-left close" style="margin-right: 8px;" ng-click="pc.changeBulibotName()"></span>
+							</form>
+						</dd>
+						<dd ng-show="pc.changeBulibotNameMessage != null" class="successMessage" style="text-align: left;">{{pc.changeBulibotNameMessage}}</dd>
+						<dd ng-show="pc.changeBulibotNameError != null" class="errorMessage" style="text-align: left;">{{pc.changeBulibotNameError}}</dd>
+						<dt><span class="output">Angemeldet seit:</span></dt>
+						<dd><span class="output">{{pc.user.since.dayOfMonth < 10 ? '0' : ''}}{{pc.user.since.dayOfMonth}}.{{pc.user.since.monthValue < 10 ? '0' : ''}}{{pc.user.since.monthValue}}.{{pc.user.since.year}}</span></dd>
+						
+						<dt><span class="output">JSON Export:</span></dt>
+						<dd>
+							<span class="glyphicon pull-left close" ng-class="pc.changeJsonExportExecutionsEnabled ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'" style="margin-right: 8px;" ng-click="pc.toggleChangeJsonExportExecutions()"></span>
+							<span ng-show="pc.user.jsonExportBulibotResultsUrlEnabled" class="glyphicon glyphicon-share-alt pull-left close" style="margin-right: 8px;" ng-click="pc.testJsonExportExecutions()"></span>
+							<span ng-show="pc.user.jsonExportBulibotResultsUrlEnabled" class="output">{{pc.user.jsonExportBulibotResultsUrl}}</span>
+							<span ng-show="!pc.user.jsonExportBulibotResultsUrlEnabled" class="output">deaktiviert</span>
+						</dd>
+						<dd ng-show="pc.changeJsonExportExecutionsEnabled">
+							<form role="form" name="changeJsonExportExecutionsForm">
+								<span ng-hide="pc.changeJsonExportExecutionsData.enabled" class="glyphicon glyphicon-unchecked close pull-left" ng-click="pc.toggleJsonExportResults()"></span>
+								<span ng-show="pc.changeJsonExportExecutionsData.enabled" class="glyphicon glyphicon-check close pull-left" ng-click="pc.toggleJsonExportResults()"></span>
+								<input ng-model="pc.changeJsonExportExecutionsData.url" name="exportUrl" type="text" class="pull-left" id="exportUrl" placeholder="Valide URL - http://yourhost.com/whatever">
+								<span class="glyphicon glyphicon-ok pull-left close" style="margin-right: 8px;" ng-click="pc.changeJsonExportExecutions()"></span>
+							</form>
+						</dd>
+						<dd ng-show="pc.changeJsonExportExecutionsMessage != null" class="successMessage" style="text-align: left;">{{pc.changeJsonExportExecutionsMessage}}</dd>
+						<dd ng-show="pc.changeJsonExportExecutionsError != null" class="errorMessage" style="text-align: left;">{{pc.changeJsonExportExecutionsError}}</dd>
+						<dd ng-show="pc.testJsonExportExecutionsData != null">
+							<pre class="pre-scrollable"><span class="glyphicon glyphicon-remove pull-right close" style="margin-right: 8px;" ng-click="pc.dropTestJsonExportExecutionsData()"></span>{{pc.testJsonExportExecutionsData}}</pre>
+						</dd>
+						
+						<dt><span class="output">Slack Export:</span></dt>
+						<dd>
+							<span class="glyphicon pull-left close" ng-class="pc.changeSlackExportExecutionsEnabled ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'" style="margin-right: 8px;" ng-click="pc.toggleChangeSlackExportExecutions()"></span>
+							<span ng-show="pc.user.slackExportBulibotResultsUrlEnabled" class="glyphicon glyphicon-share-alt pull-left close" style="margin-right: 8px;" ng-click="pc.testSlackExportExecutions()"></span>
+							<span ng-show="pc.user.slackExportBulibotResultsUrlEnabled" class="output">{{pc.user.slackExportBulibotResultsUrl}}</span>
+							<span ng-show="!pc.user.slackExportBulibotResultsUrlEnabled" class="output">deaktiviert</span>
+						</dd>
+						<dd ng-show="pc.changeSlackExportExecutionsEnabled">
+							<form role="form" name="changeSlackExportExecutionsForm">
+								<span ng-hide="pc.changeSlackExportExecutionsData.enabled" class="glyphicon glyphicon-unchecked close pull-left" ng-click="pc.toggleSlackExportResults()"></span>
+								<span ng-show="pc.changeSlackExportExecutionsData.enabled" class="glyphicon glyphicon-check close pull-left" ng-click="pc.toggleSlackExportResults()"></span>
+								<input ng-model="pc.changeSlackExportExecutionsData.url" name="exportUrl" type="text" class="pull-left" id="exportUrl" placeholder="Valide URL - https://hooks.slack.com/...">
+								<span class="glyphicon glyphicon-ok pull-left close" style="margin-right: 8px;" ng-click="pc.changeSlackExportExecutions()"></span>
+							</form>
+						</dd>
+						<dd ng-show="pc.changeSlackExportExecutionsMessage != null" class="successMessage" style="text-align: left;">{{pc.changeSlackExportExecutionsMessage}}</dd>
+						<dd ng-show="pc.changeSlackExportExecutionsError != null" class="errorMessage" style="text-align: left;">{{pc.changeSlackExportExecutionsError}}</dd>
+						<dd ng-show="pc.testSlackExportExecutionsData != null">
+							<pre class="pre-scrollable"><span class="glyphicon glyphicon-remove pull-right close" style="margin-right: 8px;" ng-click="pc.dropTestSlackExportExecutionsData()"></span>{{pc.testSlackExportExecutionsData}}</pre>
+						</dd>
+					</dl>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="deleteProfileModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">Profil löschen</h4>
+				</div>
+				<div class="modal-body">
+					<p>Möchtest du dein Profil wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden und alle Daten, Bulibots und erzielten Ergebnisse werden unwiderruflich gelöscht.</p>
+					<form class="form-profile" role="form">
+						<input ng-model="pc.deleteUserData.password" name="password" type="password" class="form-control start-control" id="password" placeholder="Passwort" required="required">
+						<button type="submit" class="btn btn-lg btn-danger btn-block" style="margin-bottom: 12px;" ng-click="pc.deleteUser()">Löschen</button>
+						<p ng-show="pc.deleteUserError != null" class="errorMessage">{{pc.deleteUserError}}</p>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</@layout.bootstrap>

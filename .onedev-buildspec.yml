@@ -1,0 +1,155 @@
+version: 15
+jobs:
+- name: CI
+  steps:
+  - !CheckoutStep
+    name: checkout
+    cloneCredential: !HttpCredential
+      accessTokenSecret: retrieve-token
+    withLfs: false
+    withSubmodules: true
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !CommandStep
+    name: command
+    runInContainer: true
+    image: '@script:builtin:maven:determine-docker-image@'
+    interpreter: !DefaultInterpreter
+      commands:
+      - set -e
+      - ''
+      - echo "Detecting project version (may require some time while downloading maven
+        dependencies)..."
+      - buildVersion=$(mvn org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate
+        -Dexpression=project.version -q -DforceStdout)
+      - echo "$buildVersion" > DOCKER_TAG
+      - echo "##onedev[SetBuildVersion '$buildVersion']"
+      - echo
+      - ''
+      - mvn clean verify
+    useTTY: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !PublishArtifactStep
+    name: publish artifact
+    artifacts: '**'
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  cpuRequirement: 250
+  memoryRequirement: 128
+  caches:
+  - key: maven-cache
+    path: /root/.m2/repository
+  timeout: 3600
+- name: Deploy
+  steps:
+  - !CommandStep
+    name: command
+    runInContainer: true
+    image: docker
+    interpreter: !DefaultInterpreter
+      commands:
+      - set -e
+      - ''
+      - export DOCKER_TAG=$(cat DOCKER_TAG)
+      - echo "building docker container for $DOCKER_TAG"
+      - echo "##onedev[SetBuildVersion '$DOCKER_TAG']"
+      - ''
+      - mkdir -p target/docker
+      - cp target/bulibot-$DOCKER_TAG.jar target/docker/bulibot.jar
+      - cp -r src/main/docker/* target/docker/
+      - docker build -t chrgroth/bulibot:$DOCKER_TAG .
+      - ''
+      - echo "deploying new version ..."
+      - docker stack deploy --with-registry-auth --resolve-image changed -c docker-stack@param:_docker-stack-suffix_@.yml
+        bulibot@param:_docker-stack-suffix_@
+      - sleep 10
+      - ''
+      - docker stack services bulibot@param:_docker-stack-suffix_@
+      - docker stack ps bulibot@param:_docker-stack-suffix_@
+    useTTY: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  paramSpecs:
+  - !TextParam
+    name: _docker-stack-suffix_
+    allowEmpty: true
+    multiline: false
+  triggers:
+  - !TagCreateTrigger
+    tags: version/**
+    branches: master
+    params:
+    - secret: false
+      valuesProvider: !SpecifiedValues
+        values:
+        - []
+      name: _docker-stack-suffix_
+  jobDependencies:
+  - jobName: CI
+    requireSuccessful: true
+    artifacts: '**'
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  cpuRequirement: 250
+  memoryRequirement: 128
+  timeout: 3600
+- name: Version bump
+  steps:
+  - !CheckoutStep
+    name: checkout
+    cloneCredential: !HttpCredential
+      accessTokenSecret: retrieve-token
+    withLfs: false
+    withSubmodules: true
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !CommandStep
+    name: command
+    runInContainer: true
+    image: 'maven:3.8.4-jdk-8'
+    interpreter: !DefaultInterpreter
+      commands:
+      - set -e
+      - ''
+      - echo "updating git config ..."
+      - git config user.email "xxx"
+      - git config user.name "chris"
+      - ''
+      - echo "changing back from detached head to branch @branch@ ..."
+      - git fetch origin @branch@:@branch@
+      - git checkout @branch@
+      - ''
+      - mvn versions:set -DremoveSnapshot -DgenerateBackupPoms=false
+      - git add pom.xml
+      - git commit --author="Anton Admin <xxx>"  -m "Remove snapshot"
+      - ''
+      - mvn -B release:update-versions
+      - git add pom.xml
+      - git commit --author="Anton Admin <xxx>"  -m "Version bump"
+      - ''
+      - git push origin HEAD:master
+    useTTY: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  triggers:
+  - !BranchUpdateTrigger
+    branches: master
+    paths: -pom.xml
+  jobDependencies:
+  - jobName: Deploy
+    requireSuccessful: true
+    jobParams:
+    - secret: false
+      valuesProvider: !SpecifiedValues
+        values:
+        - - -staging
+      name: _docker-stack-suffix_
+    artifacts: '**'
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  cpuRequirement: 250
+  memoryRequirement: 128
+  caches:
+  - key: maven-cache
+    path: /root/.m2/repository
+  timeout: 3600

@@ -1,0 +1,387 @@
+[
+	{
+		"version" : "0.20.2",
+		"released" : "26.08.2022",
+		"bugfixes" : [
+			"Allow bulibot script execution for matches in progress in same day."
+		]
+	},
+	{
+		"version" : "0.20.1",
+		"released" : "24.10.2021",
+		"features" : [
+			"Added admin killswitch feature to workaround stuck services."
+		]
+	},
+	{
+		"version" : "0.20.0",
+		"released" : "08.11.2020",
+		"features" : [
+			"Added save shortcut ctrl|cmd + s to editor page.",
+			"Display max script runtime in details of test results.",
+			"Made statistics charts responsible."
+		],
+		"bugfixes" : [
+			"Fixed statistics charts for current season to only have data until current matchday."
+		]
+	},
+	{
+		"version" : "0.19.2",
+		"released" : "05.11.2020",
+		"bugfixes" : [
+			"Fixed parsing of numbers from bulibot scripts. Everything is converted using java.lang.Number#intValue()"
+		]
+	},
+	{
+		"version" : "0.18.1",
+		"released" : "22.06.2020",
+		"bugfixes" : [
+			"Fixed bulibot testing mode (introduced with 0.17.0)"
+		]
+	},
+	{
+		"version" : "0.18.0",
+		"released" : "10.05.2020",
+		"features" : [
+			"added match date to rankings view"
+		]
+	},
+	{
+		"version" : "0.17.0",
+		"released" : "22.03.2020",
+		"features" : [
+			"added admin function to manually remove pending bulibot executions" 
+		]
+	},
+	{
+		"version" : "0.16.1",
+		"released" : "19.08.2017",
+		"bugfixes" : [
+			"fixed groovy sandboxing when run inside docker container" 
+		]
+	},
+	{
+		"version" : "0.16.0",
+		"released" : "23.05.2018",
+		"features" : [
+			"timer metrics for smartcrons",
+			"shortened slack export text",
+			"using configurable short names for teams with fallbacks to openligadb provided short names",
+			"implemented Elo Ratings based on configurable EloHelper available in UI and for Bulibot executions (see API docs and StatisticsResultBuilder for more information).",
+			"added direct link to API docs in editor UI"
+		],
+		"bugfixes" : [
+			"login is no longer case sensitive",
+			"fixed empty statistics in UI",
+			"no smartcron history for system helper jobs" 
+		]
+	},
+	{
+		"version" : "0.15.0",
+		"released" : "05.12.2017",
+		"features" : [
+			"upgraded ninja framework to 6.2.0",
+			"upgraded jetty to 9.3.11.v20160721",
+			"replaced metrics with ninja framework internal metrics",
+			"added dependency to configure metrics graphite integration"
+		]
+	},
+	{
+		"version" : "0.14.1",
+		"released" : "19.08.2017",
+		"features" : [
+			"Disabling auto save on editor UI by default",
+			"Added strategy to test season before last"
+		],
+		"bugfixes" : [
+			"Fixed usernames in ranking slack export",
+			"Fixed update of ranking after bulibot executions",
+			"Javadoc fixes"
+		]
+	},
+	{
+		"version" : "0.14.0",
+		"released" : "08.08.2017",
+		"features" : [
+			"Startup notification per runlevel",
+			"upgraded json-store to 0.8.1",
+			"upgraded unirest to 1.4.9",
+			"changed openligadb API calls to https (disabled certification checks due to rejected letsencrypt certificateswhich by unirest)",
+			"separate slack channel for notifications during development",
+			"prevent data export (json and slack) in non production mode",
+			"switched from json-store autosave mode to explicit saving to increase startup and openligadb sync performance",
+			"add home/awa ranking on matches UI and in StatisticsResult so it's available in bulibot scripts",
+			"changed data export (json and slack) to smartcron and implemented retries if POST request fails",
+			"added ranking export via slack after block of matches ended"
+		],
+		"bugfixes" : [
+			"fixed bulibot slack export",
+			"show rankings data before first matchday on new season",
+			"fixed compiled groovy script cache invalidation",
+			"avoid duplicate statistics and rankings calculation on startup"
+		]
+	},
+	{
+		"version" : "0.13.0",
+		"released" : "28.04.2017",
+		"features" : [
+			"refactored internal metric events to reduce memory footprint",
+			"upgraded groovy version to 2.4.7",
+			"use only one shared groovy scripting engine and cache compiled groovy scripts",
+			"mark own rank in ranking UI with light gray",
+			"mark best matchday rank in ranking UI with dark gray in points column",
+			"hide chart labels for zero values",
+			"added metrics event compacting background smartcron",
+			"optimized internal event handling / persisting",
+			"combined matches and statistics on same view",
+			"added goal getters to UI again",
+			"updated bootstrap to 3.3.7-1",
+			"enhanced user administration to be able to reset password and invite new users",
+			"added admin option to execute smartcron directly",
+			"restructured navigation",
+			"added season charts to rankings UI",
+			"added test result charts to editor UI",
+			"added charts to storage admin UI",
+			"include momentjs 2.17.1",
+			"added smartcron duration chart to admin UI",
+			"introduced properties editable at runtime",
+			"implemented notification service to send system events via slack",
+			"added bulibot result export to slack"
+		],
+		"bugfixes" : [
+			"fixed arrows on profile UI to change on opened / closed section",
+			"show bulibot executions as soon as they are available",
+			"fixed mockito and powermock version issues"
+		]
+	},
+	{
+		"version" : "0.12.0",
+		"released" : "27.11.2016",
+		"features" : [
+			"refactored system startup/init to runlevel like model",
+			"executing bulibots in parallel, not sure though if this really speeds up on current vserver hardware",
+			"refactored internal metric events to reduce memory footprint",
+			"simplified rankings UI",
+			"tracking bulibot execution duration, shown in test details",
+			"display bulibot execution threshold on editor UI",
+			"added statistics dialog to rankings UI to display some charts using highstock v4.2.5"
+		]
+	},
+	{
+		"version" : "0.11.0",
+		"released" : "10.11.2016",
+		"features" : [
+			"saving metric asynchronously to increase responsiveness",
+			"upgraded to latest json-store (including string interning) to decrease memory usage",
+			"creating bulibot results 12h before first match of matchday / at least at 08:00 on the first day of the matchday",
+			"removed goal getters from statistics UI due to bad data quality provided by openligadb, however goal getters data is still available for bulibot scripting",
+			"added help to rankings UI",
+			"made registration configurable",
+			"add login delay after threshold of failed logins",
+			"added some edge cases during openligadb data conversion to detect match waiting or in progress status",
+			"added filterSeasonMatchday to StatisticsBuilder to filter season x / a until season y / b"
+		],
+		"bugfixes" : [
+			"fixed rank comparator to consider points, exact hits, relative hits, number of versions and error rate accordingly"
+		]
+	},
+	{
+		"version" : "0.10.0",
+		"released" : "23.05.2016",
+		"features" : [
+			"added unit test coverage",
+			"minor UI tweaks",
+			"added simple metrics system",
+			"saving team entities and serving team icons from own server, avoid mixed content in SSL context"
+		],
+		"bugfixes" : [
+			"fixed last season data ranking in execution context"
+		]
+	},
+	{
+		"version" : "0.9.1",
+		"released" : "17.05.2016",
+		"bugfixes" : [
+			"fixed calculation of current season after last matchday was finished"
+		]
+	},
+	{
+		"version" : "0.9.0",
+		"released" : "03.04.2016",
+		"features" : [
+			"exporting bulibot execution data as JSON, if enabled in profile",
+			"replaced all ng-if directives with ng-show / ng-hide to increase Angular JS performance (reduces DOM operations)",
+			"using ng-cloak to prevent flickering of uncompiled angular templates",
+			"added timeouts to remove status messages set by ajax operations",
+			"new design for profile page",
+			"reduced number of OpenligaDB requests at startup",
+			"decoupled user name and bulibot name from rankings data"
+		],
+		"bugfixes" : [
+			"fixed use live button margins in editor",
+			"show current bulibot name in rankings view before bulibots are executed",
+			"broken responsive design in editors testdata results table",
+			"changing user name or bulibot name is reflected directly in rankings view"
+		]
+	},
+	{
+		"version" : "0.8.2",
+		"released" : "22.03.2016",
+		"features" : [
+			"moved overall test result line in editor to top of table"
+		],
+		"bugfixes" : [
+			"fixed null values in bulibot execution debug state map",
+			"fixed statistics data for current season to not contain execution matchday, this caused test executions to have actual data",
+			"fixed statistics data in test mode, overall data also contained results from future matches (future relative to last test matchday)"
+		]
+	},
+	{
+		"version" : "0.8.1",
+		"released" : "20.03.2016",
+		"bugfixes" : [
+			"removed javascript console output",
+			"fixed bulibot test executions in case some executions are already present",
+			"fixed bulibot test result details modal"
+		]
+	},
+	{
+		"version" : "0.8.0",
+		"released" : "20.03.2016",
+		"features" : [
+			"introduced OpenligaDB team id and goal getter id to provide better data",
+			"removed last update timestamps from ranking data and statistics result",
+			"removed version in statistics result",
+			"caching ranking data",
+			"updated smartcron and enhanced reporting",
+			"removed ninja metrics",
+			"modularized admin and status views",
+			"added release notes view",
+			"added global loading panel",
+			"minor UI changes"
+		],
+		"bugfixes" : [
+			"fixed rankings UI table layout in case of current matchday not started"
+		]
+	},
+	{
+		"version" : "0.7.0",
+		"released" : "16.03.2016",
+		"features" : [
+			"bulibot test execution and testdata API",
+			"integrated testing to editor UI",
+			"source cleanup and minor refactorings",
+			"dropped last parts of old prototype sources and assets",
+			"enhanced statistics result to contain goals per team one and two per matchday, match and season",
+			"added help and Javadoc link to editor UI"
+		],
+		"bugfixes" : [
+			"fixed computation of seasons with existing and not empty ranking data",
+			"fixed rankings UI table layout"
+		]
+	},
+	{
+		"version" : "0.6.0",
+		"released" : "04.03.2016",
+		"features" : [
+			"added question before deleting user in admin UI",
+			"new editor UI including version handling, auto-save and busy indicator",
+			"change user name and bulibot name on profile UI",
+			"removed bulibot and user name from ranking and execution data (enables changing without recalculation)",
+			"include all users in ranking also with missing bulibot executions if they join later"
+		],
+		"bugfixes" : [
+			"fixed displaying match time",
+			"fixed responsiveness of data tables",
+			"recalculating stats on user delete",
+			"fixed favicon",
+			"fixed navbar responsiveness"
+		]
+	},
+	{
+		"version" : "0.5.0",
+		"released" : "07.02.2016",
+		"features" : [
+			"first simple editor UI",
+			"included build version in UI",
+			"added goals per matchday to statistics",
+			"added last update timestamp for statictics and match data",
+			"minor UI changes" 
+		],
+		"bugfixes" : [
+			"fixed log configuration",
+			"fixed UI message keys",
+			"fixed mailing configuration",
+			"fixed NullPointerException when dealing with incomplete match data"
+		]
+	},
+	{
+		"version" : "0.4.1",
+		"released" : "22.01.2016",
+		"bugfixes" : [
+			"fixed NullPointerException during statistics computation"
+		]
+	},
+	{
+		"version" : "0.4.0",
+		"released" : "22.01.2016",
+		"features" : [
+			"mailing configuration",
+			"authentication service and REST API security",
+			"skipping locked and not verified users during bulibot executions",
+			"added rankings UI",
+			"one-time smartcron to compute all parrot bulibot executions for current season",
+			"profile UI",
+			"login and registration UI using Angular JS",
+			"added admin UI",
+			"no longer using ninja session cookie, only auth cookie needed",
+			"status UI containing metrics, REST API help, smartcrons, build and config"
+		],
+		"bugfixes" : [
+			"changed auth cookie to base on user id"
+		]
+	},
+	{
+		"version" : "0.3.0",
+		"released" : "14.01.2016",
+		"features" : [
+			"user, bulibot and rankings datamodel",
+			"first version of scripting and bulibot service",
+			"added scripting sandbox framework by datenwerke",
+			"updating rankings on match data change / sync",
+			"added system users / bulibot parrot"
+		]
+	},
+	{
+		"version" : "0.2.0",
+		"released" : "09.01.2016",
+		"features" : [
+			"using Java 8 Date and Time API",
+			"basic angular UI for match data",
+			"including games in progress to statistics (enables live statistics)",
+			"include half time results to data, if provided",
+			"enhanced global statistics data",
+			"statistics UI"
+		],
+		"bugfixes" : [
+			"patched ninja assets controller creating a lot of open file handles"
+		]
+	},
+	{
+		"version" : "0.1.0",
+		"released" : "23.12.2015",
+		"features" : [
+			"restarted implementation from second prototype based on ninja framework",
+			"fetching OpenligaDB data via REST API",
+			"integrated smartcron library for scheduled tasks",
+			"smartcron for computation of current season and matchday based on matchdata",
+			"added ninja metrics",
+			"configurable first data season",
+			"computation of transient statistics",
+			"added build information",
+			"added storage size metrics",
+			"added goal getter statistics (beta)",
+			"added REST API help"
+		]
+	}
+]
